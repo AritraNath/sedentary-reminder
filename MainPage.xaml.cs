@@ -7,8 +7,6 @@ using Microsoft.QueryStringDotNET; // QueryString.NET
 using Windows.UI.ViewManagement;
 using Windows.UI;
 using Windows.ApplicationModel.Core;
-using Windows.ApplicationModel.Activation;
-using System.Timers;
 using System.Collections.ObjectModel;
 
 // The Blank Page item template is documented at https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x409
@@ -23,10 +21,18 @@ namespace TimerTest
         private const string timerStartSpeech = "I will remind you every ";
         private static string title = "Get Up!";
         private static string content = "The set time has elapsed!";
+        private string hr, min;
         public string LiveTime => DateTime.Now.ToString("dd MMM yyyy HH:mm:ss");
 
         private ObservableCollection<Int32> hours = new ObservableCollection<Int32>();
         private ObservableCollection<Int32> minutes = new ObservableCollection<Int32>();
+
+        private Windows.Storage.ApplicationDataContainer localSettings =
+                Windows.Storage.ApplicationData.Current.LocalSettings;
+        private Windows.Storage.StorageFolder localFolder =
+            Windows.Storage.ApplicationData.Current.LocalFolder;
+
+        private int time;
 
         public MainPage()
         {
@@ -34,13 +40,7 @@ namespace TimerTest
             this.ExtendAcrylicIntoTitleBar();
             Window.Current.SetTitleBar(customTitle);
 
-            for (int i = 0; i < 24; i++)
-                hours.Add(i);
-            for (int i = 1; i < 60; i++)
-                minutes.Add(i);
-
-            hoursComboBox.SelectedIndex = 0;
-            minutesComboBox.SelectedIndex = 29;
+            populateComboBoxes();
 
             DispatcherTimer Timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             DataContext = this;
@@ -49,9 +49,20 @@ namespace TimerTest
             Timer.Start();
         }
 
+        private void populateComboBoxes()
+        {
+            for (int i = 0; i < 24; i++)
+                hours.Add(i);
+            for (int i = 1; i < 60; i++)
+                minutes.Add(i);
+
+            hoursComboBox.SelectedIndex = 0;
+            minutesComboBox.SelectedIndex = 29;
+        }
+
         private void Timer_Tick(object sender, object e)
         {
-            Time.Text = DateTime.Now.ToString("hh:mm tt");
+            Time.Text = DateTime.Now.ToString("ddd, dd MMM, hh:mm tt");
         }
 
         private void ExtendAcrylicIntoTitleBar()
@@ -62,11 +73,38 @@ namespace TimerTest
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
         }
 
-        private async void Notify(object sender, RoutedEventArgs e)
+        private void Notify(object sender, RoutedEventArgs e)
         {
-            String hr = hoursComboBox.SelectedValue.ToString();
-            String min = minutesComboBox.SelectedValue.ToString();
-            int number, time = 0;
+            time = 0;
+            readTimeInput();
+            saveSettingToFile();
+            playAudio();
+
+            // Create the scheduled notification
+            var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddMinutes(time));
+            // And your scheduled toast to the schedule
+            ToastNotificationManager.CreateToastNotifier().AddToSchedule(toast);
+        }
+
+        private void saveSettingToFile()
+        {
+            localSettings.Values["hourSetting"] = hr;
+            localSettings.Values["minuteSetting"] = min;
+
+            readSettingFromFile();
+        }
+
+        private void readSettingFromFile()
+        {
+            Object hr = localSettings.Values["hourSetting"];
+            Object min = localSettings.Values["minuteSetting"];
+        }
+
+        private void readTimeInput()
+        {
+            hr = hoursComboBox.SelectedValue.ToString();
+            min = minutesComboBox.SelectedValue.ToString();
+            int number;
 
             bool isParsable = Int32.TryParse(hr, out number);
             if (isParsable)
@@ -75,21 +113,16 @@ namespace TimerTest
             isParsable = Int32.TryParse(min, out number);
             if (isParsable)
                 time += (number);
-            Console.WriteLine(time);
+        }
 
+        private async void playAudio()
+        {
             MediaElement mediaElement = new MediaElement();
             var synth = new Windows.Media.SpeechSynthesis.SpeechSynthesizer();
             Windows.Media.SpeechSynthesis.SpeechSynthesisStream stream = await synth.SynthesizeTextToStreamAsync(timerStartSpeech + time.ToString() + " minutes");
             mediaElement.SetSource(stream, stream.ContentType);
             mediaElement.Play();
-            // Create the scheduled notification
-            var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddMinutes(time));
-            // And your scheduled toast to the schedule
-            ToastNotificationManager.CreateToastNotifier().AddToSchedule(toast);
         }
-
-        // In a real app, these would be initialized with actual data
-
 
         // Now we can construct the final toast content
         readonly ToastContent toastContent = new ToastContent()
