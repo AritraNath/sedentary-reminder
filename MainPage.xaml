@@ -1,0 +1,102 @@
+﻿<Page
+    x:Class="TimerTest.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:TimerTest"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    MinHeight="450"
+    Background="{ThemeResource SystemControlAcrylicWindowMediumHighBrush}"
+    mc:Ignorable="d">
+
+    <Grid MinWidth="450" MinHeight="450">
+        <Grid
+            x:Name="customTitle"
+            Grid.Column="1"
+            Height="32"
+            VerticalAlignment="Top"
+            Background="Transparent">
+            <TextBlock
+                Margin="12,8,0,0"
+                FontSize="12"
+                Text="Arijit's Sedentary Reminder" />
+        </Grid>
+        <Grid VerticalAlignment="Center">
+            <TextBox
+                x:Name="Time"
+                Margin="0,65,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                VerticalContentAlignment="Center"
+                FontSize="20"
+                Header="Current Time"
+                IsDoubleTapEnabled="False"
+                IsHoldingEnabled="False"
+                IsReadOnly="True"
+                IsRightTapEnabled="False"
+                IsTapEnabled="False"
+                PlaceholderText="Current Time"
+                TextAlignment="Center"
+                TextWrapping="Wrap" />
+
+            <!--<TimePicker
+                x:Name="timePicker"
+                Margin="0,215,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                FontSize="16"
+                Header="Set Time Interval" />-->
+            
+            <Grid
+                Height="92"
+                Margin="0,218,0,0"
+                Padding="5,5,5,5"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                RenderTransformOrigin="0.504,3.156">
+
+                <TextBlock
+                    Margin="4,0,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Top">
+                    Select Reminder Interval
+                </TextBlock>
+
+                <ComboBox x:Name="hoursComboBox"
+                          VerticalAlignment="Bottom"
+                    Width="120"
+                    ItemsSource="{x:Bind hours}"
+                    PlaceholderText="hour" Margin="0,0,0,20" />
+
+                <ComboBox x:Name="minutesComboBox"
+                    Width="120"
+                          VerticalAlignment="Bottom"
+                    Margin="125,0,0,20"
+                    ItemsSource="{x:Bind minutes}"
+                    PlaceholderText="minute" />
+
+                <TextBlock
+                    Margin="4,4,0,0"
+                    HorizontalAlignment="Left"
+                    VerticalAlignment="Bottom">
+                    hours
+                </TextBlock>
+                <TextBlock
+                    Margin="0,0,64,0"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Bottom">
+                    minutes
+                </TextBlock>
+            </Grid>
+            
+            <Button
+                Margin="0,360,0,0"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Top"
+                Click="Notify"
+                Content="Remind me!"
+                FontSize="16"
+                Style="{ThemeResource ButtonRevealStyle}" />
+        </Grid>
+    </Grid>
+</Page>
