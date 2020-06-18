@@ -29,9 +29,6 @@ namespace TimerTest
 
         private Windows.Storage.ApplicationDataContainer localSettings =
                 Windows.Storage.ApplicationData.Current.LocalSettings;
-        private Windows.Storage.StorageFolder localFolder =
-            Windows.Storage.ApplicationData.Current.LocalFolder;
-
         private int time;
 
         public MainPage()

@@ -14,8 +14,8 @@
   <mp:PhoneIdentity PhoneProductId="8f0e5678-2d06-4b5f-be0c-ad6122e7a08e" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
   <Properties>
-    <DisplayName>TimerTest</DisplayName>
-    <PublisherDisplayName>Aritra</PublisherDisplayName>
+    <DisplayName>SedentaryReminder</DisplayName>
+    <PublisherDisplayName>Aritra Nath</PublisherDisplayName>
     <Logo>Assets\StoreLogo.png</Logo>
   </Properties>
 
