@@ -18,9 +18,10 @@ namespace TimerTest
     /// </summary>
     public sealed partial class MainPage : Page
     {
-        private const string timerStartSpeech = "I will remind you every ";
+        private const string timerStartSpeech = "You will be reminded every ";
         private static string title = "Get Up!";
         private static string content = "The set time has elapsed!";
+        private static string timeString;
         private string hr, min;
         public string LiveTime => DateTime.Now.ToString("dd MMM yyyy HH:mm:ss");
 
@@ -29,7 +30,7 @@ namespace TimerTest
 
         private Windows.Storage.ApplicationDataContainer localSettings =
                 Windows.Storage.ApplicationData.Current.LocalSettings;
-        private int time;
+        private static int time;
 
         public MainPage()
         {
@@ -78,7 +79,7 @@ namespace TimerTest
             playAudio();
 
             // Create the scheduled notification
-            var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddMinutes(time));
+            var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddSeconds(time));
             // And your scheduled toast to the schedule
             ToastNotificationManager.CreateToastNotifier().AddToSchedule(toast);
         }
@@ -110,19 +111,20 @@ namespace TimerTest
             isParsable = Int32.TryParse(min, out number);
             if (isParsable)
                 time += (number);
+            timeString = time.ToString();
         }
 
         private async void playAudio()
         {
             MediaElement mediaElement = new MediaElement();
             var synth = new Windows.Media.SpeechSynthesis.SpeechSynthesizer();
-            Windows.Media.SpeechSynthesis.SpeechSynthesisStream stream = await synth.SynthesizeTextToStreamAsync(timerStartSpeech + time.ToString() + " minutes");
-            mediaElement.SetSource(stream, stream.ContentType);
+            Windows.Media.SpeechSynthesis.SpeechSynthesisStream stream = await synth.SynthesizeTextToStreamAsync(
+                timerStartSpeech + time.ToString() + ((time == 1)?" minute": " minutes"));
             mediaElement.Play();
         }
 
         // Now we can construct the final toast content
-        readonly ToastContent toastContent = new ToastContent()
+        ToastContent toastContent = new ToastContent()
         {
             Scenario = ToastScenario.Alarm,
 
@@ -149,7 +151,31 @@ namespace TimerTest
                 }
 
             },
-            Actions = new ToastActionsSnoozeAndDismiss(),
+            Actions = new ToastActionsCustom()
+            {
+                Inputs =
+                {
+                    new ToastSelectionBox("snoozeTime")
+                    {
+                        DefaultSelectionBoxItemId = "2",
+                        Items =
+                        {                             new ToastSelectionBoxItem("2", timeString +  " minutes")
+                        }
+                    }
+                },
+                Buttons =
+                {
+                    new ToastButtonSnooze("Continue")
+                    {
+                        SelectionBoxId = "snoozeTime"
+                    },
+
+                    new ToastButton("Stop Reminders", "dismiss")
+                    {
+                        ActivationType = ToastActivationType.Background
+                    }
+                }
+            },
             // Arguments when the user taps body of toast
             Launch = new QueryString()
             {
@@ -157,6 +183,5 @@ namespace TimerTest
                 { "classId", "3910938180" }
             }.ToString()
         };
- 
     }
 }
