@@ -159,7 +159,8 @@ namespace TimerTest
                     {
                         DefaultSelectionBoxItemId = "2",
                         Items =
-                        {                             new ToastSelectionBoxItem("2", timeString +  " minutes")
+                        {
+                             new ToastSelectionBoxItem("2", timeString +  " minutes")
                         }
                     }
                 },
