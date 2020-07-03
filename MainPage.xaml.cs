@@ -79,9 +79,9 @@ namespace TimerTest
             playAudio();
 
             // Create the scheduled notification
-            var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddSeconds(time));
-            // And your scheduled toast to the schedule
-            ToastNotificationManager.CreateToastNotifier().AddToSchedule(toast);
+            //var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddSeconds(time));
+            //// And your scheduled toast to the schedule
+            //ToastNotificationManager.CreateToastNotifier().AddToSchedule(toast);
         }
 
         private void saveSettingToFile()
@@ -123,66 +123,6 @@ namespace TimerTest
             mediaElement.Play();
         }
 
-        // Now we can construct the final toast content
-        ToastContent toastContent = new ToastContent()
-        {
-            Scenario = ToastScenario.Alarm,
-
-            Visual = new ToastVisual()
-            {
-                BindingGeneric = new ToastBindingGeneric()
-                {
-                    HeroImage = new ToastGenericHeroImage()
-                    {
-                        Source = "https://picsum.photos/364/180?image=1043"
-                    },
-                    Children =
-                    {
-                        new AdaptiveText()
-                        {
-                            Text = title
-                        },
-
-                        new AdaptiveText()
-                        {
-                            Text = content
-                        }
-                    }
-                }
-
-            },
-            Actions = new ToastActionsCustom()
-            {
-                Inputs =
-                {
-                    new ToastSelectionBox("snoozeTime")
-                    {
-                        DefaultSelectionBoxItemId = "2",
-                        Items =
-                        {
-                             new ToastSelectionBoxItem("2", timeString +  " minutes")
-                        }
-                    }
-                },
-                Buttons =
-                {
-                    new ToastButtonSnooze("Continue")
-                    {
-                        SelectionBoxId = "snoozeTime"
-                    },
-
-                    new ToastButton("Stop Reminders", "dismiss")
-                    {
-                        ActivationType = ToastActivationType.Background
-                    }
-                }
-            },
-            // Arguments when the user taps body of toast
-            Launch = new QueryString()
-            {
-                { "action", "viewClass" },
-                { "classId", "3910938180" }
-            }.ToString()
-        };
+      
     }
 }
