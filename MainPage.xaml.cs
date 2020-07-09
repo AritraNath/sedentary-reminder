@@ -2,8 +2,7 @@
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Notifications;
-using Microsoft.Toolkit.Uwp.Notifications; // Notifications library
-using Microsoft.QueryStringDotNET; // QueryString.NET
+using Microsoft.Toolkit.Uwp.Notifications; // Notifications library // QueryString.NET
 using Windows.UI.ViewManagement;
 using Windows.UI;
 using Windows.ApplicationModel.Core;
@@ -19,14 +18,15 @@ namespace TimerTest
     public sealed partial class MainPage : Page
     {
         private const string timerStartSpeech = "You will be reminded every ";
-        private static string title = "Get Up!";
+        private static string title = "Time to Move!";
         private static string content = "The set time has elapsed!";
-        private static string timeString;
         private string hr, min;
         public string LiveTime => DateTime.Now.ToString("dd MMM yyyy HH:mm:ss");
 
-        private ObservableCollection<Int32> hours = new ObservableCollection<Int32>();
-        private ObservableCollection<Int32> minutes = new ObservableCollection<Int32>();
+        private readonly ObservableCollection<Int32> hours = new ObservableCollection<Int32>();
+        private readonly ObservableCollection<Int32> minutes = new ObservableCollection<Int32>();
+
+        private DispatcherTimer countDownTimer;
 
         private Windows.Storage.ApplicationDataContainer localSettings =
                 Windows.Storage.ApplicationData.Current.LocalSettings;
@@ -38,7 +38,7 @@ namespace TimerTest
             this.ExtendAcrylicIntoTitleBar();
             Window.Current.SetTitleBar(customTitle);
 
-            populateComboBoxes();
+            PopulateComboBoxes();
 
             DispatcherTimer Timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
             DataContext = this;
@@ -47,7 +47,7 @@ namespace TimerTest
             Timer.Start();
         }
 
-        private void populateComboBoxes()
+        private void PopulateComboBoxes()
         {
             for (int i = 0; i < 24; i++)
                 hours.Add(i);
@@ -60,7 +60,7 @@ namespace TimerTest
 
         private void Timer_Tick(object sender, object e)
         {
-            Time.Text = DateTime.Now.ToString("ddd, dd MMM, hh:mm tt");
+            Time.Text = DateTime.Now.ToString("ddd, dd MMM, hh:mm:ss tt");
         }
 
         private void ExtendAcrylicIntoTitleBar()
@@ -71,58 +71,130 @@ namespace TimerTest
             titleBar.ButtonInactiveBackgroundColor = Colors.Transparent;
         }
 
-        private void Notify(object sender, RoutedEventArgs e)
+        private void RemindButtonClick(object sender, RoutedEventArgs e)
         {
-            time = 0;
-            readTimeInput();
-            saveSettingToFile();
-            playAudio();
+            if (remindButton.IsChecked == true)
+            {
+                ReadTimeInput();
+                SaveSettingToFile();
+                PlayAudio();
 
-            // Create the scheduled notification
-            //var toast = new ScheduledToastNotification(toastContent.GetXml(), DateTime.Now.AddSeconds(time));
-            //// And your scheduled toast to the schedule
-            //ToastNotificationManager.CreateToastNotifier().AddToSchedule(toast);
+                StartReminders();
+                remindButton.Content = "Stop Reminding Me!";
+            }
+            else
+            {
+                remindButton.Content = "Start Reminders";
+                countDownTimer.Stop();
+            }
         }
 
-        private void saveSettingToFile()
+        private void StartReminders()
+        {
+            
+            
+            countDownTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromMinutes(time)
+            };
+            if(remindButton.IsChecked == true)
+                countDownTimer.Tick += CountDownTimer_Tick;
+            countDownTimer.Start();
+        }
+
+        private void CountDownTimer_Tick(object sender, object e)
+        {
+            //Time.Text = (++i).ToString();
+            Notify();
+        }
+
+        private void Notify()
+        {
+            var toast = new ToastNotification(toastContent.GetXml());
+            ToastNotificationManager.CreateToastNotifier().Show(toast);
+        }
+
+        readonly ToastContent toastContent = new ToastContent()
+        {
+            Scenario = ToastScenario.Alarm,
+
+            Visual = new ToastVisual()
+            {
+                BindingGeneric = new ToastBindingGeneric()
+                {
+                    HeroImage = new ToastGenericHeroImage()
+                    {
+                        Source = "https://picsum.photos/364/180?image=1043"
+                    },
+                    Children =
+                    {
+                        new AdaptiveText()
+                        {
+                            Text = title
+                        },
+
+                        new AdaptiveText()
+                        {
+                            Text = content
+                        }
+                    }
+                }
+
+            },
+            Actions = new ToastActionsCustom()
+            {
+                
+                Buttons =
+                {
+                    new ToastButtonDismiss()
+                    {
+                        
+                    }
+                }
+            },
+            // Arguments when the user taps body of toast
+            //Launch = new QueryString()
+            //{
+            //    { "action", "viewClass" },
+            //    { "classId", "3910938180" }
+            //}.ToString()
+        };
+
+        private void SaveSettingToFile()
         {
             localSettings.Values["hourSetting"] = hr;
             localSettings.Values["minuteSetting"] = min;
 
-            readSettingFromFile();
+            ReadSettingFromFile();
         }
 
-        private void readSettingFromFile()
+        private void ReadSettingFromFile()
         {
             Object hr = localSettings.Values["hourSetting"];
             Object min = localSettings.Values["minuteSetting"];
         }
 
-        private void readTimeInput()
+        private void ReadTimeInput()
         {
             hr = hoursComboBox.SelectedValue.ToString();
             min = minutesComboBox.SelectedValue.ToString();
-            int number;
 
-            bool isParsable = Int32.TryParse(hr, out number);
+            bool isParsable = Int32.TryParse(hr, out int number);
             if (isParsable)
                 time += (number * 60);
 
             isParsable = Int32.TryParse(min, out number);
             if (isParsable)
                 time += (number);
-            timeString = time.ToString();
         }
 
-        private async void playAudio()
+        private async void PlayAudio()
         {
             MediaElement mediaElement = new MediaElement();
             var synth = new Windows.Media.SpeechSynthesis.SpeechSynthesizer();
-            Windows.Media.SpeechSynthesis.SpeechSynthesisStream stream = await synth.SynthesizeTextToStreamAsync(
-                timerStartSpeech + time.ToString() + ((time == 1)?" minute": " minutes"));
+            _ = await synth.SynthesizeTextToStreamAsync(
+                timerStartSpeech + time.ToString() + ((time == 1) ? " minute" : " minutes"));
             mediaElement.Play();
         }
-
-      
     }
 }

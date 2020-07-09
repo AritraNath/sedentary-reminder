@@ -42,7 +42,7 @@ namespace TimerTest
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
-            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(800, 600));
+            ApplicationView.GetForCurrentView().SetPreferredMinSize(new Size(300, 330));
 
             // Do not repeat app initialization when the Window already has content,
             // just ensure that the window is active
